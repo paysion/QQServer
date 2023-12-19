@@ -1,10 +1,15 @@
 package com.zoc.qqserver.service;
 
 
+import com.zoc.qqcommon.Message;
+import com.zoc.qqcommon.MessageType;
 import com.zoc.qqcommon.User;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -43,14 +48,37 @@ public class QQServer {
         return true;
     }
 
+    // 这是一个无参构造器
     public QQServer() {
-        // 注意：端口可以写在配置文件
-        System.out.println("服务端在9999端口监听...");
-        // 启动推送新闻的线程
-        new Thread(new SendNewsToAllService()).start();
         try {
+            // 注意：端口可以写在配置文件
+            System.out.println("服务端在9999端口监听...");
+            // 启动推送新闻的线程
+            new Thread(new SendNewsToAllService()).start();
             ss = new ServerSocket(9999);
-        } catch (IOException e) {
+
+            while (true) {
+                Socket socket = ss.accept();
+                // 得到socket关联的对象输入流
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                // 得到socket关联的对象输出流
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                // 读取客户端发送的User对象,因为知道客户端发送的是User对象，所以可以使用强转
+                User user = (User) ois.readObject();
+                // 创建一个Message对象回复客户端信息
+                Message message = new Message();
+                if (user.getUserId().equals("admin") && user.getPasswd().equals("123456")) {
+                    message.setMesType(MessageType.MESSAGE_LOGIN_SUCCEED);
+                    // 将message对象回复给客户端
+                    oos.writeObject(message);
+                    // 创建一个线程，和客户端保持通信，该线程需要持有socket对象
+                    ServerConnectClientThread serverConnectClientThread = new ServerConnectClientThread(socket, user.getUserId());
+                    // 启动该线程
+                    serverConnectClientThread.start();
+                    // 把该线程对象，放入到一个集合当中方便管理
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
