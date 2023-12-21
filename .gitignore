@@ -34,4 +34,5 @@ buildNumber.properties
 build/
 
 # Node.js 的依赖目录
-node_modules/  
+node_modules/
+/.idea/
