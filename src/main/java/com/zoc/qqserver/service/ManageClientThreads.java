@@ -25,4 +25,13 @@ public class ManageClientThreads {
         }
         return onlineUserList;
     }
+
+    // 添加线程对象到 hm 集合
+    public static void addClientThread(String userId, ServerConnectClientThread serverConnectClientThread) {
+        hm.put(userId, serverConnectClientThread);
+    }
+
+    public static void removeServerConnectClientThread(String userId) {
+        hm.remove(userId);
+    }
 }

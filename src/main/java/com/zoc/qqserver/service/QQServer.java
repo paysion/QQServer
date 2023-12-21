@@ -67,7 +67,7 @@ public class QQServer {
                 User user = (User) ois.readObject();
                 // 创建一个Message对象回复客户端信息
                 Message message = new Message();
-                if (user.getUserId().equals("admin") && user.getPasswd().equals("123456")) {
+                if (checkUser(user.getUserId(), user.getPasswd())) {
                     message.setMesType(MessageType.MESSAGE_LOGIN_SUCCEED);
                     // 将message对象回复给客户端
                     oos.writeObject(message);
@@ -76,10 +76,25 @@ public class QQServer {
                     // 启动该线程
                     serverConnectClientThread.start();
                     // 把该线程对象，放入到一个集合当中方便管理
+                    ManageClientThreads.addClientThread(user.getUserId(), serverConnectClientThread);
+                } else { // 登录失败
+                    System.out.println("用户 id=" + user.getUserId() + " pwd=" + user.getPasswd() + " 验证失败");
+                    message.setMesType(MessageType.MESSAGE_LOGIN_FAIL);
+                    oos.writeObject(message);
+                    // 关闭socket
+                    socket.close();
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+
+            //如果服务器退出了while，说明服务器端不在监听，因此关闭ServerSocket
+            try {
+                ss.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
