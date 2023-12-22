@@ -14,6 +14,11 @@ public class ManageClientThreads {
         return hm;
     }
 
+    // 根据userId返回ServerConnectClientThread线程
+    public static ServerConnectClientThread getClientThread(String userId) {
+        return hm.get(userId);
+    }
+
     // 编写方法返回在线用户列表
     public static String getOnlineUser() {
         // 遍历hashmap的key获取用户列表,使用迭代器？

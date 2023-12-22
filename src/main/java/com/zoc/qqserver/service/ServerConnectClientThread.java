@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class ServerConnectClientThread extends Thread{
 
@@ -46,8 +48,26 @@ public class ServerConnectClientThread extends Thread{
                     ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                     oos.writeObject(message2);
                 } else if (message.getMesType().equals(MessageType.MESSAGE_COMM_MES)) {// 普通的聊天消息
-
+                    // 获取消息接收者的userId,根据userId获取对应的线程
+                    ServerConnectClientThread serverConnectClientThread = ManageClientThreads.getClientThread(message.getGetter());
+                    Socket socket = serverConnectClientThread.getSocket();
+                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                    // 这一块是消息转发，将消息转发给对应userId的线程
+                    oos.writeObject(message);
+                    // 构造回复的消息，但在这里似乎先不考虑回复的消息？先考虑给客户端返回消息并显示？
+                    // 消息其实不用回复，转发就好了，服务端不用对消息做处理
                 } else if (message.getMesType().equals(MessageType.MESSAGE_TO_ALL_MES)) {
+                    HashMap<String, ServerConnectClientThread> hm = ManageClientThreads.getHm();
+                    Iterator<String> iterator = hm.keySet().iterator();
+                    while (iterator.hasNext()) {
+                        //取出在线用户id
+                        String onLineUserId = iterator.next().toString();
+                        if (!onLineUserId.equals(message.getSender())) {//排除群发消息的这个用户
+                            //进行转发message
+                            ObjectOutputStream oos = new ObjectOutputStream(hm.get(onLineUserId).getSocket().getOutputStream());
+                            oos.writeObject(message);
+                        }
+                    }
 
                 } else if (message.getMesType().equals(MessageType.MESSAGE_FILE_MES)) {
 

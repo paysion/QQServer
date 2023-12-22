@@ -57,7 +57,9 @@ public class QQServer {
             new Thread(new SendNewsToAllService()).start();
             ss = new ServerSocket(9999);
 
+            // 因为可能需要监听多个客户端，因此需要while
             while (true) {
+                // 如果没有客户端连接，socket就会阻塞再这里
                 Socket socket = ss.accept();
                 // 得到socket关联的对象输入流
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
