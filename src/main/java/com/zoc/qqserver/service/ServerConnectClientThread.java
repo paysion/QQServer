@@ -26,7 +26,7 @@ public class ServerConnectClientThread extends Thread{
     public void run() {
         while (true) {
             try {
-                System.out.println("服务端和客户端" + userId + " 保持通信，读取数据...");
+                System.out.println("服务端和客户端 " + userId + " 保持通信，读取数据...");
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 // 这里的message后边会使用到，暂时没发现这个message有什么用，暂且放一边
                 // 后面会使用message, 根据message的类型，做相应的业务处理
@@ -70,7 +70,9 @@ public class ServerConnectClientThread extends Thread{
                     }
 
                 } else if (message.getMesType().equals(MessageType.MESSAGE_FILE_MES)) {
-
+                    // 将message发送给接收者的线程socket
+                    ObjectOutputStream oos = new ObjectOutputStream(ManageClientThreads.getClientThread(message.getGetter()).getSocket().getOutputStream());
+                    oos.writeObject(message);
                 } else if (message.getMesType().equals(MessageType.MESSAGE_CLIENT_EXIT)) {
                     System.out.println(message.getSender() + " 退出");
                     // 将这个客户端对应线程，从集合删除.
